@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Hacker Dashboard</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background-color: black;
+      color: #00ff00;
+      overflow: hidden;
+    }
+
+    #particles-js {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    .screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.9);
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    h1, p {
+      text-shadow: 0 0 5px #00ff00;
+      margin-bottom: 20px;
+    }
+
+    .blink {
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .dashboard {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      grid-template-rows: 50px auto 100px;
+      z-index: 1;
+    }
+
+    .top-bar {
+      grid-column: span 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      background-color: rgba(0, 255, 0, 0.1);
+      font-size: 1.2em;
+    }
+
+    .log-panel {
+      padding: 10px;
+      overflow-y: auto;
+      background: rgba(0,255,0,0.05);
+      font-size: 0.95em;
+    }
+
+    .sidebar {
+      border-left: 1px solid #00ff00;
+      padding: 10px;
+      background: rgba(0,255,0,0.03);
+    }
+
+    .footer {
+      grid-column: span 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-top: 1px solid #00ff00;
+    }
+
+    button {
+      background: transparent;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #00ff00;
+      color: black;
+    }
+
+    .terminal-line {
+      margin: 5px 0;
+    }
+
+    #terminal-input {
+      width: 100%;
+      background: black;
+      border: none;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 1em;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="particles-js"></div>
+
+  <div class="screen" id="warning-screen">
+    <h1>⚠ YASAL UYARI ⚠</h1>
+    <p>Bu sistem yalnızca <strong>eğitimsel amaçlıdır</strong>.</p>
+    <p>Yasadışı kullanım <strong>suçtur</strong> ve tüm sorumluluk kullanıcıya aittir.</p>
+    <p class="blink">Devam etmek için ENTER tuşuna basın...</p>
+  </div>
+
+  <div class="dashboard hidden" id="dashboard">
+    <div class="top-bar">
+      <div id="ip-display">IP: Alınıyor...</div>
+      <div id="clock">Saat: --:--:--</div>
+    </div>
+
+    <div class="log-panel" id="log-panel"></div>
+
+    <div class="sidebar">
+      <h3>Kullanıcılar</h3>
+      <ul>
+        <li>root@admin</li>
+        <li>guest</li>
+        <li>scanner_bot</li>
+        <li>injectorX</li>
+        <li>observer</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <button onclick="startAttack()">🚀 Saldırı Başlat</button>
+      <input id="terminal-input" placeholder="komut girin..." onkeydown="handleCommand(event)">
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 100 },
+        color: { value: "#00ff00" },
+        shape: { type: "circle" },
+        opacity: { value: 0.5, random: true },
+        size: { value: 2, random: true },
+        line_linked: {
+          enable: true,
+          distance: 150,
+          color: "#00ff00",
+          opacity: 0.4,
+          width: 1
+        },
+        move: {
+          enable: true,
+          speed: 1.5,
+          direction: "none",
+          out_mode: "out"
+        }
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: {
+          onhover: { enable: true, mode: "repulse" },
+          onclick: { enable: true, mode: "push" }
+        },
+        modes: {
+          repulse: { distance: 100 },
+          push: { particles_nb: 4 }
+        }
+      },
+      retina_detect: true
+    });
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && document.getElementById("warning-screen").classList.contains("screen")) {
+        document.getElementById("warning-screen").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+      }
+    });
+
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("ip-display").innerText = "IP: " + data.ip;
+      });
+
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById("clock").innerText =
+        `Saat: ${now.getHours().toString().padStart(2, '0')}:` +
+        `${now.getMinutes().toString().padStart(2, '0')}:` +
+        `${now.getSeconds().toString().padStart(2, '0')}`;
+    }, 1000);
+
+    const logPanel = document.getElementById("log-panel");
+    const logLines = [
+      "[+] Proxy bağlantısı kuruldu...",
+      "[*] Hedef taranıyor: 192.168.1.1",
+      "[!] Açık port bulundu: 22 (SSH)",
+      "[*] Bruteforce denemesi başlatılıyor...",
+      "[+] Giriş başarılı: admin:admin123",
+      "[!] Reverse shell açıldı.",
+      "[*] Veri aktarımı başlatıldı...",
+      "[*] Dosya indiriliyor: /etc/passwd",
+      "[+] İşlem tamamlandı. Oturum kapatıldı."
+    ];
+    let logIndex = 0;
+
+    function addLog() {
+      const line = document.createElement("div");
+      line.className = "terminal-line";
+      line.textContent = logLines[logIndex % logLines.length];
+      logPanel.appendChild(line);
+      logPanel.scrollTop = logPanel.scrollHeight;
+      logIndex++;
+    }
+
+    setInterval(addLog, 2000);
+
+    function startAttack() {
+      const msg = document.createElement("div");
+      msg.className = "terminal-line";
+      msg.textContent = "[!] Saldırı başlatıldı...";
+      logPanel.appendChild(msg);
+      logPanel.scrollTop = logPanel.scrollHeight;
+    }
+
+    function handleCommand(e) {
+      if (e.key === "Enter") {
+        const input = e.target;
+        const cmd = input.value.trim();
+        if (cmd) {
+          const response = `[>] ${cmd}`;
+          const log = document.createElement("div");
+          log.className = "terminal-line";
+          log.textContent = response;
+          logPanel.appendChild(log);
+          log.scrollIntoView();
+          input.value = "";
+        }
+      }
+    }
+  </script>
+</body>
+</html>
