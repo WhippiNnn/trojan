@@ -1,0 +1,3 @@
+packetriot veya ngrok gibi bağlantı almadan çalıştırılabilir client ile yazılmıştır
+whippin tarafından yapılmıştır 
+yasa dışı kullanımda sorumluluk kabul etmiyorum
